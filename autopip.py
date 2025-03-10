@@ -966,6 +966,60 @@ class dct2obj:
         return self
 
 
+def fext(fpath=None, data=None):
+    '''
+    0x1f8b08          .tar.gz
+    0x504b03  PK      .zip
+    0x526172  Rar     .rar
+    '''
+    if  fpath:
+        try:
+            fo = open(fpath, encoding='latin')
+            data = fo.read(10)
+            fo.close()
+            assert data
+        except Exception as err:
+            raise
+    
+    elif not data:
+        raise Exception('err: data is empty.')
+
+    elif type(data) != str:
+        for mod in ('latin', 'utf-8'):
+            try:
+                data = data.decode(mod)
+                break
+            except:
+                pass
+        else:
+            raise Exception('err: cannot decode data')
+    
+    data = data.lstrip('\r\n ')
+
+    if  data.startswith('\x1f\x8b\x08'):
+        ftype = '.tar.gz'
+
+    elif data.startswith('PK\x03'):
+        ftype = '.zip'
+
+    elif data.startswith('Rar'):
+        ftype = '.rar'
+
+    elif data.startswith(('<html', '<!DOCTYP')):
+        ftype = '.html'
+
+    elif data.startswith('<?xml'):
+        ftype = '.xml'
+
+    elif data.startswith('<?php'):
+        ftype = '.php'
+
+    else:
+        ftype = '.txt'
+        print(f'{data[:6].encode("latin")} signature not found.')
+    return ftype
+
+
 def find_arg(keys, val=None, sep='', typ=str, default=None):
     if  not hasattr(sys, 'argv_copy'):
         sys.argv_copy = sys.argv.copy()
